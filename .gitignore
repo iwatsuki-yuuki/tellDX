@@ -1,0 +1,6 @@
+# .gitignore ファイルを編集
+echo "backend/.env" >> .gitignore
+echo "*.env" >> .gitignore.env# 環境変数ファイル
+.env
+backend/.env
+*.env
