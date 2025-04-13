@@ -1,0 +1,11 @@
+# backend/requirements.txt
+fastapi
+uvicorn
+openai
+python-multipart
+pydantic
+openpyxl
+python-dotenv
+
+# LINE通知用
+line-bot-sdk
