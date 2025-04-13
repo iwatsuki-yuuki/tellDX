@@ -1,6 +1,13 @@
-# .gitignore ファイルを編集
-echo "backend/.env" >> .gitignore
-echo "*.env" >> .gitignore.env# 環境変数ファイル
+# .gitignoreファイルを直接編集して内容を置き換え
+
+# 環境変数ファイル
 .env
 backend/.env
 *.env
+
+# その他の除外したいファイル
+node_modules/
+__pycache__/
+*.pyc
+*.log
+EOF
