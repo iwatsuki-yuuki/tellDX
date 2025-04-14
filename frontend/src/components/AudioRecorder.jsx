@@ -2,48 +2,51 @@ import React, { useState, useRef } from 'react';
 
 const AudioRecorder = () => {
   const [isRecording, setIsRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState(null);
-  const [audioChunks, setAudioChunks] = useState([]);
+  const mediaRecorder = useRef(null);
+  const audioChunks = useRef([]);
 
   const startRecording = async () => {
+    audioChunks.current = []; // 録音データを初期化
     setIsRecording(true);
     const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    const recorder = new MediaRecorder(stream);
+    mediaRecorder.current = new MediaRecorder(stream);
 
-    recorder.ondataavailable = (e) => {
+    mediaRecorder.current.ondataavailable = (e) => {
       if (e.data.size > 0) {
-        setAudioChunks((prev) => [...prev, e.data]);
+        audioChunks.current.push(e.data); // refに直接push
       }
     };
 
-    recorder.onstop = async () => {
-      // 録音停止後にファイル化してバックエンドに送信
-      const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+    mediaRecorder.current.onstop = async () => {
+      const audioBlob = new Blob(audioChunks.current, { type: 'audio/webm' });
       const formData = new FormData();
       formData.append('file', audioBlob, 'recording.webm');
 
-      // api.js 側で定義してもいいが、ここで直接fetchする例
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
+      try {
+        const response = await fetch('http://localhost:8000/api/upload', {
+          method: 'POST',
+          body: formData,
+        });
 
-      if (response.ok) {
-        // 成功時のハンドリング（文字起こし結果を表示など）
-        const data = await response.json();
-        alert('文字起こし結果: ' + data.transcript);
-      } else {
-        alert('エラーが発生しました');
+        if (response.ok) {
+          const data = await response.json();
+          alert('文字起こし結果: ' + data.transcript);
+        } else {
+          alert('バックエンドでエラーが発生しました');
+        }
+      } catch (error) {
+        alert('リクエスト中にエラーが発生しました: ' + error.message);
       }
     };
 
-    recorder.start();
-    setMediaRecorder(recorder);
+    mediaRecorder.current.start();
   };
 
   const stopRecording = () => {
-    setIsRecording(false);
-    mediaRecorder.stop();
+    if (mediaRecorder.current && isRecording) {
+      mediaRecorder.current.stop();
+      setIsRecording(false);
+    }
   };
 
   return (
